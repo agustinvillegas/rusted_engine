@@ -20,14 +20,14 @@ enum Token {
 
 fn kw(token: &Token, s: &str) -> bool {
     match token {
-        Token::Keyword(k) => k == s, // separa wk delresto
+        Token::Keyword(k) => k == s, // separa kw del resto
         _ => false,
     }
 }
 
-fn tokenize(input: &str) -> Result<Vec<Token>, String> {
+fn tokenize(input: &str) -> Result<Vec<Token>, String> { // recibe una referencia del string input, devuelve o un vector con todas las variantes del enum Token que se encuentran en el texto ingresado o un string con el error.
     let mut tokens = Vec::new();
-    let mut chars = input.chars().peekable();
+    let mut chars = input.chars().peekable(); // peekable permite que un iterador que recorra chars use la fun .peek().
 
     while let Some(&ch) = chars.peek() {      // comprueba si existe un proximo caracter y lo devuelve si existe, o devuelve none si no existe. luego se comprueba si ese valor existe o es none.       
         if ch.is_whitespace() {
@@ -38,14 +38,14 @@ fn tokenize(input: &str) -> Result<Vec<Token>, String> {
         match ch {
             ',' => { tokens.push(Token::Comma); chars.next(); }
             '(' => { tokens.push(Token::LParen); chars.next(); }
-            ')' => { tokens.push(Token::RParen); chars.next(); }  // todo este bloque categoriza caracteres unicos y operadores
+            ')' => { tokens.push(Token::RParen); chars.next(); }  // todo este bloque identifica caracteres unicos y operadores, luego los pushea dentor del vector.
             '*' => { tokens.push(Token::Star); chars.next(); }
             '=' => { tokens.push(Token::Eq); chars.next(); }
             '!' => {
                 chars.next();
                 match chars.next() {
                     Some('=') => tokens.push(Token::Neq),
-                    _ => return Err("Expected '=' after '!'".into()),
+                    _ => return Err("Expected '=' after '!'".into()), // si hay '!' avanza al proximo y lo chequea, si es un '=' lo pushea como  neq (no igual), si no hay '=' salta error.
                 }
             }
             '>' => {
@@ -56,7 +56,7 @@ fn tokenize(input: &str) -> Result<Vec<Token>, String> {
                 } else {
                     tokens.push(Token::Gt);
                 }
-            }
+            }               // en estos dos caracteres '<' y '>' verifica si el proximo elemento es un '=', si lo es pushea como menor o igual o mayor o igual segun corresponda, si no hay '=' pushea como mayor o menor que segun corresponda.
             '<' => {
                 chars.next();
                 if chars.peek() == Some(&'=') {
@@ -115,7 +115,7 @@ fn tokenize(input: &str) -> Result<Vec<Token>, String> {
                 let upper = word.to_uppercase();
                 const KEYWORDS: &[&str] = &[
                     "CREATE", "TABLE", "INSERT", "INTO", "VALUES",
-                    "SELECT", "FROM", "WHERE", "DELETE", "TEXT",   //  define y tokeniza las kw
+                    "SELECT", "FROM", "WHERE", "DELETE", "TEXT",   //  define y tokeniza las kwt
                     "INT", "INTEGER", "AND", "OR", "SET", "EXIT", "QUIT",
                 ];
                 if KEYWORDS.contains(&upper.as_str()) {
