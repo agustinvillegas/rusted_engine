@@ -1,4 +1,6 @@
 use crate::types::*;
+use std::iter::Peekable;
+use std::str::Chars;
 
 #[derive(Debug, Clone, PartialEq)]
 enum Token {
@@ -22,6 +24,48 @@ fn kw(token: &Token, s: &str) -> bool {
     match token {
         Token::Keyword(k) => k == s, // separa kw del resto
         _ => false,
+    }
+}
+
+fn read_number(chars: &mut Peekable<Chars<'_>>, first: char) -> Result<Token, String> {
+    let mut num = String::new();
+    if first == '-' {
+        num.push('-');
+    }
+    while let Some(&d) = chars.peek() {
+        if d.is_ascii_digit() {
+            num.push(d);
+            chars.next();
+        } else {
+            break;
+        }
+    }
+    let n: i64 = num.parse().map_err(|_| format!("Invalid number: {}", num))?;
+    Ok(Token::IntLit(n))
+}
+
+fn read_word(chars: &mut Peekable<Chars<'_>>, first: char) -> Token {
+    let mut word = String::new();
+    word.push(first);
+    chars.next();
+    while let Some(&c) = chars.peek() {
+        if c.is_alphanumeric() || c == '_' {
+            word.push(c);
+            chars.next();
+        } else {
+            break;
+        }
+    }
+    let upper = word.to_uppercase();
+    const KEYWORDS: &[&str] = &[
+        "CREATE", "TABLE", "INSERT", "INTO", "VALUES",
+        "SELECT", "FROM", "WHERE", "DELETE", "TEXT",
+        "INT", "INTEGER", "AND", "OR", "SET", "EXIT", "QUIT",
+    ];
+    if KEYWORDS.contains(&upper.as_str()) {
+        Token::Keyword(upper)
+    } else {
+        Token::Ident(word)
     }
 }
 
@@ -86,43 +130,10 @@ fn tokenize(input: &str) -> Result<Vec<Token>, String> { // recibe una referenci
                 tokens.push(Token::StrLit(s));
             }
             _ if ch.is_ascii_digit() || ch == '-' => {
-                let mut num = String::new();
-                if ch == '-' {
-                    num.push('-');
-                    chars.next();
-                }
-                while let Some(&d) = chars.peek() {
-                    if d.is_ascii_digit() {
-                        num.push(d);
-                        chars.next();
-                    } else {
-                        break;
-                    }
-                }
-                let n: i64 = num.parse().map_err(|_| format!("Invalid number: {}", num))?;
-                tokens.push(Token::IntLit(n));
+                tokens.push(read_number(&mut chars, ch)?);
             }
             _ if ch.is_alphabetic() || ch == '_' => {
-                let mut word = String::new();
-                while let Some(&c) = chars.peek() {
-                    if c.is_alphanumeric() || c == '_' {
-                        word.push(c);
-                        chars.next();
-                    } else {
-                        break;
-                    }
-                }
-                let upper = word.to_uppercase();
-                const KEYWORDS: &[&str] = &[
-                    "CREATE", "TABLE", "INSERT", "INTO", "VALUES",
-                    "SELECT", "FROM", "WHERE", "DELETE", "TEXT",   //  define y tokeniza las kwt
-                    "INT", "INTEGER", "AND", "OR", "SET", "EXIT", "QUIT",
-                ];
-                if KEYWORDS.contains(&upper.as_str()) {
-                    tokens.push(Token::Keyword(upper));
-                } else {
-                    tokens.push(Token::Ident(word));
-                }
+                tokens.push(read_word(&mut chars, ch));
             }
             _ => return Err(format!("Unexpected character: '{}'", ch)),
         }
@@ -355,3 +366,4 @@ fn parse_delete(tokens: &[Token]) -> Result<Command, String> {
 
     Ok(Command::Delete { table, where_clause })
 }
+
