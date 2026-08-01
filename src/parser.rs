@@ -366,4 +366,3 @@ fn parse_delete(tokens: &[Token]) -> Result<Command, String> {
 
     Ok(Command::Delete { table, where_clause })
 }
-

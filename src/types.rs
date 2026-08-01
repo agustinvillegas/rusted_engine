@@ -1,4 +1,5 @@
 use std::fmt;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -55,4 +56,24 @@ pub enum Command {
     Select { table: String, columns: Option<Vec<String>>, where_clause: Option<(String, Operator, Value)> },
     Delete { table: String, where_clause: Option<(String, Operator, Value)> },
     Exit,
+}
+
+pub struct Row {
+    pub values: Vec<Value>,
+}
+pub struct Table {
+    pub columns: Vec<Column>,
+    pub rows: Vec<Row>, // tablas, con filas y columnas
+}
+
+pub struct Database {
+    pub tables: HashMap<String, Table>, //la base de datos en si, representada en un hash map, el nombre de la tablaa es la key, la tabla  el value.
+}
+
+impl Database {
+   pub fn new() -> Self {
+        Database {
+            tables: HashMap::new(),
+        }
+    }
 }
