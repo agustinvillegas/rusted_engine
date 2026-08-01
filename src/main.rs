@@ -6,13 +6,16 @@ use std::io::{self, Write};
 use types::*;
 use parser::parse;
 
+struct Row {
+    values: Vec<Value>,
+}
 struct Table {
     columns: Vec<Column>,
-    rows: Vec<Vec<Value>>,
+    rows: Vec<Row>, // tablas, con filas y columnas
 }
 
 struct Database {
-    tables: HashMap<String, Table>,
+    tables: HashMap<String, Table>, //la base de datos en si, representada en un hash map, el nombre de la tablaa es la key, la tabla  el value.
 }
 
 impl Database {
@@ -24,7 +27,7 @@ impl Database {
 }
 
 fn main() {
-    println!("RustDB v0.1");
+    println!("Rusted engine v0.1");
     println!("Type EXIT to quit.");
     let mut db = Database::new();
 
@@ -103,8 +106,8 @@ fn execute(db: &mut Database, cmd: Command) -> Result<String, String> {
                     }
                 }
             }
-
-            tbl.rows.push(values);
+            let row = Row { values };
+            tbl.rows.push(row);
             Ok(format!("Inserted 1 row into '{}'", table))
         }
         Command::Select {
@@ -129,8 +132,8 @@ fn execute(db: &mut Database, cmd: Command) -> Result<String, String> {
                     .collect::<Result<Vec<_>, _>>()?,
                 None => (0..tbl.columns.len()).collect(),
             };
-
-            let rows: Vec<&Vec<Value>> = match where_clause {
+            
+            let rows: Vec<&Row> = match where_clause {  // rows contiene referencias a todas las filas que cumplan con las caracterizticas del select por ende alberga &row.
                 Some((col, op, val)) => {
                     let col_idx = tbl
                         .columns
@@ -139,7 +142,7 @@ fn execute(db: &mut Database, cmd: Command) -> Result<String, String> {
                         .ok_or_else(|| format!("Column '{}' not found", col))?;
                     tbl.rows
                         .iter()
-                        .filter(|row| matches_op(&row[col_idx], &op, &val))
+                        .filter(|row| matches_op(&row.values[col_idx], &op, &val))
                         .collect()
                 }
                 None => tbl.rows.iter().collect(),
@@ -168,7 +171,7 @@ fn execute(db: &mut Database, cmd: Command) -> Result<String, String> {
                     if i > 0 {
                         output.push_str(" | ");
                     }
-                    output.push_str(&format!("{}", row[idx]));
+                    output.push_str(&format!("{}", row.values[idx]));
                 }
                 output.push('\n');
             }
@@ -190,7 +193,7 @@ fn execute(db: &mut Database, cmd: Command) -> Result<String, String> {
                         .iter()
                         .position(|c| c.name == col)
                         .ok_or_else(|| format!("Column '{}' not found", col))?;
-                    tbl.rows.retain(|row| !matches_op(&row[col_idx], &op, &val));
+                    tbl.rows.retain(|row| !matches_op(&row.values[col_idx], &op, &val));
                 }
                 None => {
                     tbl.rows.clear();
