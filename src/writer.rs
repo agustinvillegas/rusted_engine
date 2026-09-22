@@ -7,7 +7,17 @@ fn save_database(table:&table) -> Result <(), std::io::Error> {
 	let mut cant_columns = table.columns.len(); //mismo
 	file.write_all(&cant_rows);
 	file.write_all(&cant_columns);
-	let mut file = File::create("database.db");
+	let mut file = File::create("database.db")
+		b_c = cant_columns.to_le_bytes();
+		b_r = cant_rows.to_le_bytes();
+		file.write_all(&b_c);
+		file.write_all(&b_r);
+		for c in table.columns {
+			n=c.name;
+			t=c.type;
+			file.write_all(&n);
+			file.write_all(&t);
+		}
 		for r in &table.rows { 	
 		for v in &r.Values { 
 			match v { 
