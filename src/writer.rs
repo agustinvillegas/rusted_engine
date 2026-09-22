@@ -13,11 +13,10 @@ fn save_database(table:&table) -> Result <(), std::io::Error> {
 		file.write_all(&b_c);
 		file.write_all(&b_r);
 		for c in &table.columns {
-			let n=&c.name;
-			let b_n = n.as_bytes();
+			let b_n = c.name.as_bytes();
 			let n_len = n.len();
 			let nb_len = n_len.to_le_bytes();
-			let t=	match c.Type {
+			let t=	match c.col_type {
 				c.Type::Int => 0,
 				c.type::Text => 1,
 			  	}
@@ -35,7 +34,9 @@ fn save_database(table:&table) -> Result <(), std::io::Error> {
 					} 	
 				Value::Text(t) => { 
 					let bytes = t.as_bytes();
-					file.write_all(&bytes)?; 
+					let t_len = t.len();
+					file.write_all(&bytes)?;
+					file.write_all(&t_len)?; 
 					} 
 		} 
 	} 
