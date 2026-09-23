@@ -69,6 +69,8 @@ fn load_table(file:&mut File) -> Result <Table, std::io::Error> {
 			columns.push(column);
 				}
 		let mut rows:Vec<Row> = Vec::new();
+		let mut values:Vec<Value> = Vec::new();
+		
 		for i in 0..c_r {
    		for c in &columns {
 			match c.col_type {
@@ -76,6 +78,7 @@ fn load_table(file:&mut File) -> Result <Table, std::io::Error> {
 					let mut buffer = [0u8;4];
 					file.read_exact(&mut buffer)?;
 					let v = u32::from_le_bytes(buffer);
+					values.push(v);	
 						};
 				Type::Text => {
 					file.read_exact(&mut buffer)?;
@@ -83,12 +86,15 @@ fn load_table(file:&mut File) -> Result <Table, std::io::Error> {
 					let mut t_buffer = vec![0u8;t_len]; 
 					let bv = file.read_exact(&mut t_buffer)?;
 					let v = String::from_utf8(t_buffer)?;		
-					}
-		row.push(v);	
+					values.push(v);
+				
+		row.push(values);
+					}	
 				}	 
 		let row = Row {
 		Value: v,
 			};
+		rows.push(row);
 				}
 		let table = Table {
 		 columns: columns, 
