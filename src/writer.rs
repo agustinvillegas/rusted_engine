@@ -43,44 +43,50 @@ Ok(())
 }
 
 fn load_table(file:&mut File) -> Result <Table, std::io::Error> {
-	let mut file = file;
-	let mut buffer = [0u8;4;]
+	let mut buffer = [0u8;4]
 	file.read_exact(&mut buffer)?;
 	c_c = u32::from_le_bytes(buffer);
 	file.read_exact(&mut buffer)?;
 	c_r = u32::from_le_bytes(buffer);
+		let mut columns: Vec<Column> = Vec::new();
 		for i in 0..c_c {
 			file.read_exact(&mut buffer)?;
-			c_nlen = u32::from_le_bytes(buffer);
-			n_buffer:u32 = !vec[0u8; c_nlen] as usize;
+			c_nlen = u32::from_le_bytes(buffer) as usize;
+			n_buffer:u32 = !vec[0u8; c_nlen];
 			file.read_exact(&mut n_buffer)?;
 			c_n = String::from_utf8(n_buffer)?;
 			file.read_exact(&mut buffer)?;
-			c_t = u32::from_le_bytes(buffer);	
-			let mut columns:Vec<Column> = vec::new(); 
-			let column: Column = {name: c_n, col_type: c_t};
+			c_t = u32::from_le_bytes(buffer);
+			let col_type = match c_t {
+			          0 => Type::Int,
+				  1 => Type::Text, 
+			};	 
+			let column =  Column {
+				name: c_n, 
+				col_type,
+				};
 			columns.push(column);
 				}
-		for i in 0..c_r {
 		let mut rows:Vec<Row> = Vec::new();
-   		for i in 0..c_c {
+		for i in 0..c_r {
+   		for c in &columns {
 			match c.col_type {
 				Type::Int => {
 					let mut buffer = [0u8;4];
 					file.read_exact(&mut buffer);
-					let n:u32 = u32::from_le_bytes(buffer?);
-					rows.push(n);
+					let v:u32 = u32::from_le_bytes(buffer?);
 						}
 				Type::Text => {
 					file.read_exact(&mut buffer)?;
 					let t_len = u32::from_le_bytes(buffer);
 					let mut t_buffer = [0u8;&t_len]; 
-					let t: String = file.read_exact(t_buffer)?;
-					rows.push(t);		
+					let v: String = file.read_exact(t_buffer)?;		
 						}
+					let row = Row {
+					Value: v,
+						};
+					rows.push(row)
 					}
-		
-
 
 				}	 
 			}
