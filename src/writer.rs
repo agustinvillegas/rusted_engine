@@ -45,18 +45,18 @@ Ok(())
 fn load_table(file:&mut File) -> Result <Table, std::io::Error> {
 	let mut buffer = [0u8;4]
 	file.read_exact(&mut buffer)?;
-	c_c = u32::from_le_bytes(buffer);
+	let c_c = u32::from_le_bytes(buffer);
 	file.read_exact(&mut buffer)?;
-	c_r = u32::from_le_bytes(buffer);
+	let c_r = u32::from_le_bytes(buffer);
 		let mut columns: Vec<Column> = Vec::new();
 		for i in 0..c_c {
 			file.read_exact(&mut buffer)?;
-			c_nlen = u32::from_le_bytes(buffer) as usize;
-			let mut n_buffer:u32 = !vec[0u8; c_nlen];
+			let c_nlen = u32::from_le_bytes(buffer) as usize;
+			let mut n_buffer = !vec[0u8; c_nlen];
 			file.read_exact(&mut n_buffer)?;
-			c_n = String::from_utf8(n_buffer)?;
+			let c_n = String::from_utf8(n_buffer)?;
 			file.read_exact(&mut buffer)?;
-			c_t = u32::from_le_bytes(buffer);
+			let c_t = u32::from_le_bytes(buffer);
 			let col_type = match c_t {
 			          0 => Type::Int,
 				  1 => Type::Text,
@@ -75,19 +75,18 @@ fn load_table(file:&mut File) -> Result <Table, std::io::Error> {
 				Type::Int => {
 					let mut buffer = [0u8;4];
 					file.read_exact(&mut buffer)?;
-					let v = u32::from_le_bytes(buffer)?;
+					let v = u32::from_le_bytes(buffer);
 						};
 				Type::Text => {
 					file.read_exact(&mut buffer)?;
 					let t_len = u32::from_le_bytes(buffer);
 					let mut t_buffer = vec![0u8;&t_len]; 
 					let bv = file.read_exact(t_buffer)?;
-					let v = String::from_utf8(t)buffer)?;		
-					let row = Row {
-					Value: v,
-						};
+					let v = String::from_utf8(t_buffer)?;		
 					}
-
+		let row = Row {
+		Value: v,
+				};
 		row.push(v);	
 				}	 
 			}
