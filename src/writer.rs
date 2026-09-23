@@ -70,6 +70,9 @@ fn load_table(file:&mut File) -> Result <Table, std::io::Error> {
 				}
 		let mut rows:Vec<Row> = Vec::new();
 		for i in 0..c_r {
+		let row = Row {
+		Value: v,
+			};
    		for c in &columns {
 			match c.col_type {
 				Type::Int => {
@@ -84,9 +87,6 @@ fn load_table(file:&mut File) -> Result <Table, std::io::Error> {
 					let bv = file.read_exact(t_buffer)?;
 					let v = String::from_utf8(t_buffer)?;		
 					}
-		let row = Row {
-		Value: v,
-				};
 		row.push(v);	
 				}	 
 			}
